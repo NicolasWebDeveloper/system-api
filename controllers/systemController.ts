@@ -40,16 +40,27 @@ export const getDiskInformation = async (req: Request, res: Response, next: Next
 export const getProcessInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const processInfo = await si.processes();
-    res
-      .status(200)
-      .json({
-        all: processInfo.all,
-        running: processInfo.running,
-        blocked: processInfo.blocked,
-        sleeping: processInfo.sleeping,
-        unknown: processInfo.unknown,
-      });
+    res.status(200).json({
+      all: processInfo.all,
+      running: processInfo.running,
+      blocked: processInfo.blocked,
+      sleeping: processInfo.sleeping,
+      unknown: processInfo.unknown,
+    });
   } catch (err) {
     next(new AppError('Could not get Process Information', 500));
+  }
+};
+
+export const getNetworkInformation = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const networkInfo = await si.networkInterfaces();
+    if (Array.isArray(networkInfo)) {
+      res.status(200).json({ interfaceCount: networkInfo.length });
+    } else {
+      res.status(200).json({ interfaceCount: 1 });
+    }
+  } catch (err) {
+    next(new AppError('Could not get Network Information', 500));
   }
 };
