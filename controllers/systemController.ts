@@ -26,3 +26,30 @@ export const getMemoryInfo = async (req: Request, res: Response, next: NextFunct
     next(new AppError('Could not get Memory Information', 500));
   }
 };
+
+export const getDiskInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const hardDiskInformation = await si.diskLayout();
+    const totalSize = hardDiskInformation.reduce((acc, cur) => acc + cur.size, 0) / 1000000000;
+    res.status(200).json({ totalSize, disks: hardDiskInformation.length });
+  } catch (err) {
+    next(new AppError('Could not get Disk Informations', 500));
+  }
+};
+
+export const getProcessInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const processInfo = await si.processes();
+    res
+      .status(200)
+      .json({
+        all: processInfo.all,
+        running: processInfo.running,
+        blocked: processInfo.blocked,
+        sleeping: processInfo.sleeping,
+        unknown: processInfo.unknown,
+      });
+  } catch (err) {
+    next(new AppError('Could not get Process Information', 500));
+  }
+};
