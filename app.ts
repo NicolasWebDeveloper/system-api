@@ -2,6 +2,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 
 import systemRoute from './routes/systemRoute';
+import documentationRoute from './routes/documentationRoute';
 import errorController from './controllers/errorController';
 
 const app = express();
@@ -15,6 +16,7 @@ const rateLimiter = rateLimit({
 
 app.use('/', rateLimiter);
 app.use('/system', systemRoute);
+app.use('/documentation', documentationRoute);
 
 app.use(errorController);
 

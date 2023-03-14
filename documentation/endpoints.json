@@ -1,0 +1,44 @@
+[
+  {
+    "name": "System",
+    "description": "Endpoints for retrieving information about the system",
+    "endpoints": [
+      {
+        "url": "/system/cpu",
+        "description": "Endpoint for retrieving CPU data",
+        "response": "brand, speed"
+      },
+      {
+        "url": "/system/disk",
+        "description": "Endpoint for retrieving disk data",
+        "response": "totalSize, disks"
+      },
+      {
+        "url": "/system/memory",
+        "description": "Endpoint for retrieving memory data",
+        "response": "total, free, used"
+      },
+      {
+        "url": "/system/network",
+        "description": "Endpoint for retrieving network interface data",
+        "response": "interfaceCount"
+      },
+      {
+        "url": "/system/process",
+        "description": "Endpoint for retrieving process data",
+        "response": "all, running, blocked, sleeping, unknown"
+      }
+    ]
+  },
+  {
+    "name": "Documentation",
+    "description": "Endpoints for retrieving documentation about our API",
+    "endpoints": [
+      {
+        "url": "/documentation/all",
+        "description": "Endpoint for retrieving all API endpoints",
+        "response": "All of our endpoints"
+      }
+    ]
+  }
+]
