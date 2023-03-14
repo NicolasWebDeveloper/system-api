@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import AppError from '../utils/appError';
 
-const documentationPath = path.join('./documentation/endpoints.json');
+const documentationPath = path.join(__dirname, '../documentation/endpoints.json');
 
 export const getApiDocumentation = async (req: Request, res: Response, next: NextFunction) => {
   try {
