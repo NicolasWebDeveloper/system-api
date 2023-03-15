@@ -7,6 +7,7 @@ let memoryInfo: si.Systeminformation.MemData;
 let hardDiskInfo: si.Systeminformation.DiskLayoutData[];
 let processInfo: si.Systeminformation.ProcessesData;
 let networkInfo: si.Systeminformation.NetworkInterfacesData | si.Systeminformation.NetworkInterfacesData[];
+let osInfo: si.Systeminformation.OsData;
 let lastUpdate: number;
 
 let isReady = false;
@@ -18,12 +19,14 @@ const refreshData = async () => {
   const tempHardDiskInfo = await si.diskLayout();
   const tempProcessInfo = await si.processes();
   const tempNetworkInfo = await si.networkInterfaces();
+  const tempOsInfo = await si.osInfo();
 
   cpuInfo = tempCpuData;
   memoryInfo = tempMemoryInfo;
   hardDiskInfo = tempHardDiskInfo;
   processInfo = tempProcessInfo;
   networkInfo = tempNetworkInfo;
+  osInfo = tempOsInfo;
 
   if (!isReady) isReady = true;
   lastUpdate = new Date().getTime();
@@ -128,6 +131,11 @@ export const getAllInformations = async (req: Request, res: Response, next: Next
         blocked: processInfo.blocked,
         sleeping: processInfo.sleeping,
         unknown: processInfo.unknown,
+      },
+      osInfo: {
+        platform: osInfo.platform,
+        distro: osInfo.distro,
+        hostname: osInfo.hostname,
       },
     });
   } catch (err) {
