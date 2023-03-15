@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 
 import systemRoute from './routes/systemRoute';
 import documentationRoute from './routes/documentationRoute';
+import userRoute from './routes/userRoute';
 import errorController from './controllers/errorController';
 import cors from 'cors';
 
@@ -24,6 +25,7 @@ app.use(
 app.use('/', rateLimiter);
 app.use('/system', systemRoute);
 app.use('/documentation', documentationRoute);
+app.use('/users', userRoute);
 
 app.use(errorController);
 
