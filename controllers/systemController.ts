@@ -2,10 +2,51 @@ import * as si from 'systeminformation';
 import { Request, Response, NextFunction } from 'express';
 import AppError from '../utils/appError';
 
+let cpuInfo: si.Systeminformation.CpuData;
+let memoryInfo: si.Systeminformation.MemData;
+let hardDiskInfo: si.Systeminformation.DiskLayoutData[];
+let processInfo: si.Systeminformation.ProcessesData;
+let networkInfo: si.Systeminformation.NetworkInterfacesData | si.Systeminformation.NetworkInterfacesData[];
+let lastUpdate: number;
+
+let isReady = false;
+
+const refreshData = async () => {
+  console.log('Starting to Update Data!');
+  const tempCpuData = await si.cpu();
+  const tempMemoryInfo = await si.mem();
+  const tempHardDiskInfo = await si.diskLayout();
+  const tempProcessInfo = await si.processes();
+  const tempNetworkInfo = await si.networkInterfaces();
+
+  cpuInfo = tempCpuData;
+  memoryInfo = tempMemoryInfo;
+  hardDiskInfo = tempHardDiskInfo;
+  processInfo = tempProcessInfo;
+  networkInfo = tempNetworkInfo;
+
+  if (!isReady) isReady = true;
+  lastUpdate = new Date().getTime();
+  console.log('Finished to update Data!');
+};
+
+refreshData();
+setInterval(() => {
+  refreshData();
+}, 1000 * 30);
+
+export const apiIsReady = (req: Request, res: Response, next: NextFunction) => {
+  if (isReady) {
+    next();
+  } else {
+    next(new AppError('Server is starting up', 500));
+  }
+};
+
 export const getCPUInfo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const cpuInfo = await si.cpu();
     res.status(200).json({
+      lastUpdate,
       brand: cpuInfo.brand,
       speed: cpuInfo.speed,
     });
@@ -16,8 +57,8 @@ export const getCPUInfo = async (req: Request, res: Response, next: NextFunction
 
 export const getMemoryInfo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const memoryInfo = await si.mem();
     res.status(200).json({
+      lastUpdate,
       total: memoryInfo.total / 1000000000,
       free: memoryInfo.free / 1000000000,
       used: memoryInfo.used / 1000000000,
@@ -29,9 +70,8 @@ export const getMemoryInfo = async (req: Request, res: Response, next: NextFunct
 
 export const getDiskInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const hardDiskInformation = await si.diskLayout();
-    const totalSize = hardDiskInformation.reduce((acc, cur) => acc + cur.size, 0) / 1000000000;
-    res.status(200).json({ totalSize, disks: hardDiskInformation.length });
+    const totalSize = hardDiskInfo.reduce((acc, cur) => acc + cur.size, 0) / 1000000000;
+    res.status(200).json({ lastUpdate, totalSize, disks: hardDiskInfo.length });
   } catch (err) {
     next(new AppError('Could not get Disk Informations', 500));
   }
@@ -39,8 +79,8 @@ export const getDiskInformation = async (req: Request, res: Response, next: Next
 
 export const getProcessInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const processInfo = await si.processes();
     res.status(200).json({
+      lastUpdate,
       all: processInfo.all,
       running: processInfo.running,
       blocked: processInfo.blocked,
@@ -54,13 +94,43 @@ export const getProcessInformation = async (req: Request, res: Response, next: N
 
 export const getNetworkInformation = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const networkInfo = await si.networkInterfaces();
     if (Array.isArray(networkInfo)) {
-      res.status(200).json({ interfaceCount: networkInfo.length });
+      res.status(200).json({ lastUpdate, interfaceCount: networkInfo.length });
     } else {
-      res.status(200).json({ interfaceCount: 1 });
+      res.status(200).json({ lastUpdate, interfaceCount: 1 });
     }
   } catch (err) {
     next(new AppError('Could not get Network Information', 500));
+  }
+};
+
+export const getAllInformations = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const totalSize = hardDiskInfo.reduce((acc, cur) => acc + cur.size, 0) / 1000000000;
+    res.status(200).json({
+      lastUpdate,
+      cpu: {
+        brand: cpuInfo.brand,
+        speed: cpuInfo.speed,
+      },
+      memory: {
+        total: memoryInfo.total / 1000000000,
+        free: memoryInfo.free / 1000000000,
+        used: memoryInfo.used / 1000000000,
+      },
+      disk: {
+        totalSize,
+        disks: hardDiskInfo.length,
+      },
+      process: {
+        all: processInfo.all,
+        running: processInfo.running,
+        blocked: processInfo.blocked,
+        sleeping: processInfo.sleeping,
+        unknown: processInfo.unknown,
+      },
+    });
+  } catch (err) {
+    next(new AppError('Could not get All Informations', 500));
   }
 };
